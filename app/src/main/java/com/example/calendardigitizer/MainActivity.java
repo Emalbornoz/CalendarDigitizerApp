@@ -176,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
     // Función para habilitar/deshabilitar el botón de elegir calendario
     // según si se completaron los campos de los nombres de los eventos
     private TextWatcher textWatcher = new TextWatcher() {
@@ -195,8 +196,6 @@ public class MainActivity extends AppCompatActivity {
         public void afterTextChanged(Editable editable) {
         }
     };
-
-
 
     // Función lanzada luego de presionar el botón elegir calendario. Muestra en pantalla la
     // posibilidad de tomar una foto o elegir desde la galería
@@ -229,6 +228,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -258,9 +258,7 @@ public class MainActivity extends AppCompatActivity {
                             // obtener la dirección en donde se encuentra la imagen dentro del almacenamiento
                             realPath = getPath(selectedImage);
                             // iniciar actividad asíncrona para enviar imagen por http, mostrar pantalla de que se está procesando, ....
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                uploadImage(realPath);
-                            }
+                            uploadImage(realPath);
 //                            SendImage start_task = new SendImage();
 //                            start_task.execute();
 
@@ -309,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
 
         final ProcesandoDialog dialog = new ProcesandoDialog(this);
         dialog.setMensaje("Procesando imagen...");
-        dialog.cambiarImagenProgressBar(ctx.getDrawable(R.drawable.processing));
+//        dialog.cambiarImagenProgressBar(ctx.getDrawable(R.drawable.processing));
 
         call.enqueue(new Callback() {
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -317,31 +315,39 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) {
 
-                //String rta = null;
-                try {rta = ((ResponseBody) response.body()).string(); }
-                catch (IOException e) { e.printStackTrace(); }
-
-                rta = rta.replace("\"", "");
-
-                // si la respuesta es un error, vendrá como: error x, donde x será un número identificativo
-                if (rta.toLowerCase().contains("error")) {
-
-                    rta = rta.replace("error ", "");
-                    String mensaje = obtenerMensajeError(rta);
+                if(!response.isSuccessful()){
 
                     dialog.cambiarImagenProgressBar(ctx.getDrawable(R.drawable.cross));
-                    dialog.setMensaje(mensaje);
+                    dialog.setMensaje("Problema en la comunicación con el servidor");
                     dialog.stopDialog(5);  // cerrar la ventana luego de 3 segundos
 
-                } else { // respuesta correcta
-                    new EventCreation().execute();
-                    dialog.stopDialog(0);  // cerrar la ventana luego de 3 segundos
+                }else {
+
+                    try { rta = ((ResponseBody) response.body()).string();
+                    } catch (IOException e) { e.printStackTrace(); }
+
+                    rta = rta.replace("\"", "");
+
+                    // si la respuesta es un error, vendrá como: error x, donde x será un número identificativo
+                    if (rta.toLowerCase().contains("error")) {
+
+                        rta = rta.replace("error ", "");
+                        String mensaje = obtenerMensajeError(rta);
+
+                        dialog.cambiarImagenProgressBar(ctx.getDrawable(R.drawable.cross));
+                        dialog.setMensaje(mensaje);
+                        dialog.stopDialog(5);  // cerrar la ventana luego de 3 segundos
+
+                    } else { // respuesta correcta
+                        new EventCreation().execute();
+                        dialog.stopDialog(0);  // cerrar la ventana luego de 3 segundos
+                    }
 
                 }
 
             }
-            private String obtenerMensajeError(String n_error) { // función anonima interna
 
+            private String obtenerMensajeError(String n_error) { // función anonima interna
                 switch (n_error) {
                     case "1": return "Imagen desenfocada. \n Intente nuevamente";
                     case "2": return "La imagen no supera el brillo estipulado. \n Intente nuevamente";
@@ -349,12 +355,16 @@ public class MainActivity extends AppCompatActivity {
 //                    case "4": return "No se pudo detectar en qué dia comienza la semana";
                     default: return "No se pudo detectar eventos.\n Intente nuevamente";
                 }
-
             }
 
             @Override
             public void onFailure(Call call, Throwable t) {
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
+
+                dialog.cambiarImagenProgressBar(ctx.getDrawable(R.drawable.cross));
+                dialog.setMensaje("Problema en la comunicación con el servidor");
+                dialog.stopDialog(5);  // cerrar la ventana luego de 3 segundos
+
             }
         });
     }
@@ -416,30 +426,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return eventos;
     }
-
-    /// ----------------------------------------------------------------------------
-    /// Chekear los permisos y pedirselos al usuario ya que no basta con ponerlos en el manifest
-
-    public void checkPermission(String permission, int requestCode)
-    {
-        if (ContextCompat.checkSelfPermission(MainActivity.this, permission)
-                == PackageManager.PERMISSION_DENIED) {
-
-            // Requesting the permission
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[] { permission },
-                    requestCode);
-        }
-
-    }
-
-
-    // ocultar teclado al tocar la pantalla
-    public void ocultar_teclado(View view) {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-    }
-
 
     private long createEvent(int dia, int mes, String title) {
 
@@ -559,6 +545,30 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
 
         }
+    }
+
+
+
+    /// ----------------------------------------------------------------------------
+    /// Chekear los permisos y pedirselos al usuario ya que no basta con ponerlos en el manifest
+
+    public void checkPermission(String permission, int requestCode)
+    {
+        if (ContextCompat.checkSelfPermission(MainActivity.this, permission)
+                == PackageManager.PERMISSION_DENIED) {
+
+            // Requesting the permission
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[] { permission },
+                    requestCode);
+        }
+
+    }
+
+    // ocultar teclado al tocar la pantalla
+    public void ocultar_teclado(View view) {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
 

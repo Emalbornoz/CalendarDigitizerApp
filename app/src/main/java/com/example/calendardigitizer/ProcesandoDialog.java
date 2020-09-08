@@ -17,7 +17,7 @@ public class ProcesandoDialog {
     private AlertDialog dialog;
     private TextView tv_mensaje;
 
-    ProcesandoDialog(MainActivity myActivity ){
+    ProcesandoDialog(Activity myActivity ){
         activity = myActivity;
 
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);

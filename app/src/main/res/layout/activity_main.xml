@@ -60,10 +60,10 @@
                 android:id="@+id/et_lila"
                 android:layout_width="312dp"
                 android:layout_height="60dp"
-                android:ems="10"
                 android:hint="Parcial"
-                android:inputType="textPersonName"
-                android:text="" />
+                android:inputType="textShortMessage"
+                android:selectAllOnFocus="true"
+                android:singleLine="true" />
         </TableRow>
 
         <TableRow
@@ -84,10 +84,10 @@
                 android:id="@+id/et_amarillo"
                 android:layout_width="260dp"
                 android:layout_height="60dp"
-                android:ems="10"
                 android:hint="Entrega"
-                android:inputType="textPersonName"
-                android:text="" />
+                android:inputType="textShortMessage"
+                android:selectAllOnFocus="true"
+                android:singleLine="true" />
         </TableRow>
 
         <TableRow
@@ -108,10 +108,10 @@
                 android:id="@+id/et_celeste"
                 android:layout_width="260dp"
                 android:layout_height="60dp"
-                android:ems="10"
                 android:hint="Examen"
-                android:inputType="textPersonName"
-                android:text="" />
+                android:inputType="textShortMessage"
+                android:selectAllOnFocus="true"
+                android:singleLine="true" />
         </TableRow>
 
     </TableLayout>
